@@ -24,6 +24,7 @@ class Cone : public Geometry{
   
   virtual void parse(std::ifstream& fin);
   virtual void print();
+  virtual void intersect(Ray* ray);
   
  private:   
   glm::vec3 base_point;

@@ -18,6 +18,7 @@ class Light_Source : public Geometry{
   
   virtual void parse(std::ifstream& in);
   virtual void print();
+  virtual void intersect(Ray* ray);
   
  private:
   glm::vec3 position;

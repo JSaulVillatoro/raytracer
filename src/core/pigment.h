@@ -13,6 +13,7 @@ class Pigment{
   virtual ~Pigment(){};
   void parsePigment(std::ifstream& fin);
   void printPigment();
+  Color getColor(){ return color; }
   
  private:
   Color color;

@@ -42,3 +42,5 @@ void Box::print(){
   getFinish().printFinish();
   std::cout << std::endl;
 }
+
+void Box::intersect(Ray* ray){}

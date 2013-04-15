@@ -45,3 +45,5 @@ void Triangle::print(){
   getFinish().printFinish();
   std::cout << std::endl;
 }
+
+void Triangle::intersect(Ray* ray){}

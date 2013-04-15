@@ -39,3 +39,5 @@ void Light_Source::print(){
   color.printColor();
   std::cout << std::endl;  
 }
+
+void Light_Source::intersect(Ray* ray){}

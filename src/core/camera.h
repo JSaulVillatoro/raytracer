@@ -16,7 +16,11 @@ class Camera{
   virtual ~Camera(){};
   void parseCamera(std::ifstream& fin);
   void printCamera();
-  
+  glm::vec3 getLocation(){return location;}
+  glm::vec3 getUp(){return up;}
+  glm::vec3 getRight(){return right;}
+  glm::vec3 getLookAt(){return look_at;}
+
  private:
   glm::vec3 location;
   glm::vec3 up;

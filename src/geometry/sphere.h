@@ -20,6 +20,9 @@ class Sphere : public Geometry{
   
   virtual void parse(std::ifstream& fin);
   virtual void print();
+  virtual void intersect(Ray* ray);
+  glm::vec3 getPosition(){ return position; }
+  float getRadius(){ return radius; }
   
  private:
   glm::vec3 position;

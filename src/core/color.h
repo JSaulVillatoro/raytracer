@@ -13,6 +13,7 @@ class Color{
   virtual ~Color(){};
   void parseColor(std::ifstream& fin);
   void printColor();
+  glm::vec4 getColorVector(){ return color; }
   
  private:
   glm::vec4 color;

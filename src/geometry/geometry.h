@@ -4,6 +4,7 @@
 #include <fstream>
 #include "../core/pigment.h"
 #include "../core/finish.h"
+#include "../core/ray.h"
 
 class Geometry{
  public:  
@@ -12,6 +13,7 @@ class Geometry{
   virtual ~Geometry(){};
   virtual void parse(std::ifstream& fin) = 0;
   virtual void print() = 0;
+  virtual void intersect(Ray* ray) = 0;
   
   void setPigment(std::ifstream& fin){ pigment.parsePigment(fin); }
   void setFinish(std::ifstream& fin){ finish.parseFinish(fin); }

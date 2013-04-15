@@ -51,3 +51,5 @@ void Cone::print(){
   getFinish().printFinish();
   std::cout << std::endl;
 }
+
+void Cone::intersect(Ray* ray){}

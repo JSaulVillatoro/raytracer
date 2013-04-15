@@ -1,9 +1,14 @@
 #include <iostream>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <string>
 #include <vector>
+#include "core/Image.h"
+#include "core/types.h"
 #include "core/camera.h"
+#include "core/ray.h"
+#include "core/color.h"
 #include "geometry/light_source.h"
 #include "geometry/sphere.h"
 #include "geometry/cone.h"
@@ -72,11 +77,58 @@ void printInfo(){
 int main(int argc,char *argv[]){ 
   if(argc != 5){
     std::cout << "Incorrect number of arguments." << std::endl;
-    std::cout << "Usage: " << argv[0] << " [width] [height] -I [input_file]" << std::endl;
+    std::cout << "Usage: " << argv[0] << " [image_width] [image_height] -I [input_file]" << std::endl;
     exit(0);
   }
+  int width = atoi(argv[1]);
+  int height = atoi(argv[2]);
+  
+  
+    color_t clr;
+
+  clr.r = 0.5;
+  clr.g = 0.5;
+  clr.b = 0.9;
+  
   camera = new Camera();
   parseFile(argv[4]);
-  printInfo();
+  
+  Image img(width, height);
+  
+  Ray* rays[width][height];
+  
+
+  for (int i=0; i < width; i++) {
+    for (int j=0; j < height; j++) {
+      rays[i][j] = new Ray();
+      rays[i][j]->initializeRay(*camera, width, height, i, j);
+    }
+  }
+  
+  for(unsigned int k = 0; k < world_geometry.size(); k++){
+    for (int i=0; i < width; i++) {
+      for (int j=0; j < height; j++) {
+	world_geometry[k]->intersect(rays[i][j]);
+      }
+    }
+  }
+  
+  for (int i=0; i < width; i++) {
+    for (int j=0; j < height; j++) {
+      glm::vec4 tempColor = rays[i][j]->getColor().getColorVector();
+      clr.r = tempColor.x;
+      clr.g = tempColor.y;
+      clr.b = tempColor.z;
+      img.pixel(i, j, clr);
+      }
+    }
+    
+    argv[4][strlen(argv[4]) - 1] = 'a';
+    argv[4][strlen(argv[4]) - 2] = 'g';
+    argv[4][strlen(argv[4]) - 3] = 't';
+    
+  // write the targa file to disk
+  img.WriteTga((char *)argv[4], true); 
+  // true to scale to max color, false to clamp to 1.0
   return 0;
 }

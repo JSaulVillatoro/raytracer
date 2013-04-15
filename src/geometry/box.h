@@ -20,6 +20,7 @@ class Box : public Geometry{
   
   virtual void parse(std::ifstream& fin);
   virtual void print();
+  virtual void intersect(Ray* ray);
   
  private:   
   glm::vec3 corner1;
