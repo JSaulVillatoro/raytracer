@@ -1,4 +1,4 @@
-// cs174, assignment 1 sample file (RIGHT HANDED) 1
+// cs174, assignment 1 sample file (RIGHT HANDED)
 
 camera {
   location  <0, 0, 14>
