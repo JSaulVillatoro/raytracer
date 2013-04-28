@@ -2,10 +2,12 @@
 #define LIGHT_SOURCE_H
 
 #include <fstream>
+#include "../core/pigment.h"
+#include "../core/finish.h"
+#include "../core/ray.h"
 #include <../third_party/glm/glm.hpp>
-#include "geometry.h"
 
-class Light_Source : public Geometry{
+class Light_Source{
  public:
   Light_Source(){
     position = glm::vec3(0.0f);
@@ -16,9 +18,11 @@ class Light_Source : public Geometry{
     parse(in);
   }
   
-  virtual void parse(std::ifstream& in);
-  virtual void print();
-  virtual void intersect(Ray* ray);
+  void parse(std::ifstream& in);
+  void print();
+  void intersect(Ray* ray);
+  glm::vec3 getPosition(){ return position; }
+  Color getColor(){ return color;}
   
  private:
   glm::vec3 position;

@@ -16,6 +16,14 @@ class Finish{
   
   virtual ~Finish(){};
   void parseFinish(std::ifstream& fin);
+  float getAmbient(){ return ambient;}
+  float getDiffuse(){ return diffuse;}
+  float getSpecular(){ return specular;}
+  float getRoughness(){ return roughness;}
+  float getReflection(){ return reflection;}
+  float getRefraction(){ return refraction;}
+  float getIor(){ return ior;}
+
   void printFinish();
   
  private:

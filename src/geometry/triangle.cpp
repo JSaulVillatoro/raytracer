@@ -46,4 +46,5 @@ void Triangle::print(){
   std::cout << std::endl;
 }
 
-void Triangle::intersect(Ray* ray){}
+float Triangle::intersect(Ray* ray, float t0, float t1){return 0.0f;}
+glm::vec3 Triangle::calculateNormal(Ray* ray){return glm::vec3(0.0f);}

@@ -14,6 +14,7 @@ class Pigment{
   void parsePigment(std::ifstream& fin);
   void printPigment();
   Color getColor(){ return color; }
+  void setColor(glm::vec4 newColor){color.setColor(newColor);}
   
  private:
   Color color;

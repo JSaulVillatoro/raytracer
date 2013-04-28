@@ -43,4 +43,5 @@ void Box::print(){
   std::cout << std::endl;
 }
 
-void Box::intersect(Ray* ray){}
+float Box::intersect(Ray* ray, float t0, float t1){return 0.0f;}
+glm::vec3 Box::calculateNormal(Ray* ray){return glm::vec3(0.0f);}

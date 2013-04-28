@@ -5,12 +5,11 @@
 #include "finish.h"
 
 void Finish::parseFinish(std::ifstream& fin){
+  char c = fin.get();
   std::string tempString;
-  fin >> tempString;
   
-  if(tempString != "{"){
-    std::cout << "Incorrect format, found: " << tempString << ", expected: {" << std::endl;
-    exit(0);
+  while(c != '{'){
+    c = fin.get();
   }
   
   fin >> tempString;
@@ -19,7 +18,7 @@ void Finish::parseFinish(std::ifstream& fin){
     
     float value;
     fin >> value;
-    
+        
     if( tempString == "ambient"){
       ambient = value;
     }

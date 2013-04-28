@@ -36,9 +36,6 @@ profile: DEFS += NDEBUG
 
 debug release profile: $(EXEC)
 
-simple: $(EXEC)
-	./$(EXEC) 640 480 -I povray_files/simple.pov
-
 run: $(EXEC)
 	./$(EXEC)
 

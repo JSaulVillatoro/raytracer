@@ -2,27 +2,40 @@
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include <algorithm>
+#include <cmath>
 #include "sphere.h"
 #include "../core/parser.h"
 
 void Sphere::parse(std::ifstream& fin){
+   char c = fin.get();
   std::string tempString;
-  fin >> tempString;
-  
-  if(tempString != "{"){
-    std::cout << "Incorrect format, found: " << tempString << ", expected: {" << std::endl;
-    exit(0);
+
+  while(c != '{'){
+    c = fin.get();
   }
   
-  setVector(fin, position);
+  glm::vec3 tempPosition;
+  setVector(fin, tempPosition);
+  
+  setTransformationMatrix(glm::translate(glm::mat4(1.0f), tempPosition));
+  
+  while(c != ','){
+   c = fin.get(); 
+  }
   
   fin >> radius;
-  //pesky comma
   fin >> tempString;
   
   glm::vec3 empty;
   
   while(tempString != "}"){
+        if(tempString[0] == '/' && tempString[1] == '/'){
+      getline(fin, tempString);
+    }
+    
+    else{
+    
     if(tempString == "pigment"){
       setPigment(fin);
     }
@@ -30,36 +43,58 @@ void Sphere::parse(std::ifstream& fin){
       setFinish(fin);
     }
     else if(tempString == "translate"){
-      setVector(fin, empty);
+      glm::vec3 translation;
+      setVector(fin, translation);
+      setTransformationMatrix(glm::translate(glm::mat4(1.0f), translation));
     }
     else if(tempString == "rotate"){
-      setVector(fin, empty);
+      glm::vec3 rotate;
+      setVector(fin, rotate);
+      
+      if(rotate.x != 0.0f){
+	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.x, glm::vec3(1.0f, 0.0f, 0.0f)));
+      }
+      else if(rotate.y != 0.0f){
+	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.y, glm::vec3(0.0f, 1.0f, 0.0f)));
+      }
+      else{
+	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.z, glm::vec3(0.0f, 0.0f, 1.0f)));
+      }
     }
     else if(tempString == "scale"){
-      setVector(fin, empty);
+      glm::vec3 scale;
+      setVector(fin, scale);
+      setTransformationMatrix(glm::scale(glm::mat4(1.0f), scale));
     }
     else{
       std::cout << "Unidentified keyword: " << tempString << std::endl;
       exit(0);
+    }
     }
     
     fin >> tempString;  
   }	
 }
 
-void Sphere::print(){
-  std::cout << "=== Sphere ===" << std::endl; 
-  std::cout << "position: <" << position.x << ",  " << position.y << ", " << position.z << ">" << std::endl; 
-  std::cout << "radius: " << radius << std::endl;
-  getPigment().printPigment();
-  getFinish().printFinish();
-  std::cout << std::endl;
-}
-
-void Sphere::intersect(Ray* ray){
+float Sphere::intersect(Ray* ray, float t0, float t1){
   
-  glm::vec3 p = ray->getPoint() - position;
+  glm::vec3 p = ray->getPoint();
+  glm::vec4 tempP = glm::vec4(p, 1.0f);
+  tempP = glm::inverse(getTransformationMatrix()) * tempP;
+  
   glm::vec3 d = ray->getDirection();
+   glm::vec4 tempD = glm::vec4(d, 0.0f);
+  tempD = glm::inverse(getTransformationMatrix()) * tempD;
+    
+  p.x = tempP.x;
+  p.y = tempP.y;
+  p.z = tempP.z;
+    
+  d.x = tempD.x;
+  d.y = tempD.y;
+  d.z = tempD.z;
+  
+  p = p - position;
     
   float firstTerm = -1.0f * glm::dot(d, p);
   
@@ -72,7 +107,7 @@ void Sphere::intersect(Ray* ray){
   float underRoot = d_dot_p_squared - (d_dot_d * (p_dot_p - (radius * radius)));
   
   if(underRoot < 0.0f){
-    return;
+    return -1.0f;
   }
   
   float t_one = (firstTerm - sqrt(underRoot)) / d_dot_d;
@@ -80,7 +115,7 @@ void Sphere::intersect(Ray* ray){
 
   
   if(t_one < 0.0f && t_two < 0.0f){
-    return;
+    return -1.0;
   }
   
   float pos_t_one = abs(t_one);
@@ -106,8 +141,33 @@ void Sphere::intersect(Ray* ray){
    }
   }
   
-  if(theT < ray->getTime()){
-    ray->setTime(theT);
-    ray->setColor(getPigment().getColor());
+  if(theT > t0 && theT < t1){
+    
+    glm::vec3 poi = p + theT * d;
+    glm::vec4 n_os = glm::vec4(poi - position, 0.0f);
+    glm::vec4 n_ws4 = n_os * glm::inverse(getTransformationMatrix());
+    
+    glm::vec3 n_ws = glm::vec3(n_ws4.x, n_ws4.y, n_ws4.z); 
+    
+    ray->setNormal(n_ws);
+    
+    
+    return theT;
   }
+  else{
+    return -1.0f;
+  }
+}
+
+void Sphere::print(){
+  std::cout << "=== Sphere ===" << std::endl; 
+  std::cout << "position: <" << position.x << ",  " << position.y << ", " << position.z << ">" << std::endl; 
+  std::cout << "radius: " << radius << std::endl;
+  getPigment().printPigment();
+  getFinish().printFinish();
+  std::cout << std::endl;
+}
+
+glm::vec3 Sphere::calculateNormal(Ray* ray){
+  return ray->getIntersectionPoint() - position;
 }

@@ -6,17 +6,20 @@
 #include "parser.h"
 
 void Camera::parseCamera(std::ifstream& fin){
+  char c = fin.get();
   std::string tempString;
-  fin >> tempString;
-  
-  if(tempString != "{"){
-    std::cout << "Incorrect format, found: " << tempString << ", expected: {" << std::endl;
-    exit(0);
+    
+  while(c != '{'){
+    c = fin.get();
   }
   fin >> tempString;
   
   while(tempString != "}"){
+    if(tempString[0] == '/' && tempString[1] == '/'){
+      getline(fin, tempString);
+    }
     
+    else{
     if(tempString == "location"){
       setVector(fin, location);
     }
@@ -33,7 +36,7 @@ void Camera::parseCamera(std::ifstream& fin){
       std::cout << "Unidentified keyword: " << tempString << std::endl;
       exit(0);
     }
-    
+    }
     fin >> tempString;   
   } 
   

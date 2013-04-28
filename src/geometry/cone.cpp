@@ -52,4 +52,5 @@ void Cone::print(){
   std::cout << std::endl;
 }
 
-void Cone::intersect(Ray* ray){}
+float Cone::intersect(Ray* ray, float t0, float t1){return 0.0f;}
+glm::vec3 Cone::calculateNormal(Ray* ray){return glm::vec3(0.0f);}

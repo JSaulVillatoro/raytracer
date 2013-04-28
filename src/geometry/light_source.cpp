@@ -6,12 +6,11 @@
 #include "../core/parser.h"
 
 void Light_Source::parse(std::ifstream& in){
+  char c = in.get();
   std::string tempString;
-  in >> tempString;
-  
-  if(tempString != "{"){
-    std::cout << "Incorrect format, found: " << tempString << ", expected: {" << std::endl;
-    exit(0);
+
+  while(c != '{'){
+    c = in.get();
   }
   
   setVector(in, position);
@@ -39,5 +38,3 @@ void Light_Source::print(){
   color.printColor();
   std::cout << std::endl;  
 }
-
-void Light_Source::intersect(Ray* ray){}
