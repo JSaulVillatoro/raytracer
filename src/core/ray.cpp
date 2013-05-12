@@ -34,8 +34,10 @@ void Ray::initializeRay(Camera camera, int imageWidth, int imageHeight, int i, i
   glm::vec3 v_term = v_s * glm::normalize(v);
   glm::vec3 w_term = w_s * glm::normalize(w);
   
-  glm::vec3 temp = camera.getLocation() + u_term + v_term + w_term;
-  direction = temp - camera.getLocation();
+  direction = u_term + v_term + w_term;
+  
+  //glm::vec3 temp = camera.getLocation() + u_term + v_term + w_term;
+  //direction = temp - camera.getLocation();
   //std::cout << "x: " << direction.x << " y: " << direction.y << " z: " <<direction.z << std::endl;
 }
 

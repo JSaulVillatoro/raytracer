@@ -25,6 +25,8 @@ class Geometry{
   Finish getFinish(){ return finish; }
   glm::mat4 getTransformationMatrix(){return transformationMatrix;}
   void setTransformationMatrix(glm::mat4 aMatrix){transformationMatrix = aMatrix * transformationMatrix;} 
+  void setTransformationMatrixOppo(glm::mat4 aMatrix){transformationMatrix = transformationMatrix * aMatrix;} 
+
   
  private:
   Pigment pigment;

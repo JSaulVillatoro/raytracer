@@ -16,9 +16,8 @@ void Sphere::parse(std::ifstream& fin){
   }
   
   glm::vec3 tempPosition;
-  setVector(fin, tempPosition);
+  setVector(fin, tempPosition);  
   
-  setTransformationMatrix(glm::translate(glm::mat4(1.0f), tempPosition));
   
   while(c != ','){
    c = fin.get(); 
@@ -74,6 +73,8 @@ void Sphere::parse(std::ifstream& fin){
     
     fin >> tempString;  
   }	
+    setTransformationMatrix(glm::translate(glm::mat4(1.0f), tempPosition));
+
 }
 
 float Sphere::intersect(Ray* ray, float t0, float t1){
@@ -94,7 +95,7 @@ float Sphere::intersect(Ray* ray, float t0, float t1){
   d.y = tempD.y;
   d.z = tempD.z;
   
-  p = p - position;
+ // p = p - position;
     
   float firstTerm = -1.0f * glm::dot(d, p);
   
@@ -124,7 +125,7 @@ float Sphere::intersect(Ray* ray, float t0, float t1){
   float theT;
   
   if(pos_t_one <= pos_t_two){
-   if(t_one < 0.0f){
+   if(t_one <= 0.0f){
      theT = t_two;
    }
    else{

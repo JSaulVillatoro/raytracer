@@ -15,6 +15,7 @@ class Ray{
     normal = glm::vec3(0.0f);
     time = std::numeric_limits<double>::infinity();
     Color color = Color();
+    prevIOR = 1.0f;
   }
   
   virtual ~Ray(){};
@@ -31,6 +32,8 @@ class Ray{
   void setColor(glm::vec4 newColor){ color.setColor(newColor); }
   glm::vec3 getNormal(){return normal;}
   void setNormal(glm::vec3 aNormal){normal = aNormal;}
+  float getIOR(){  return prevIOR; }
+  void setIOR(float aIOR){ prevIOR = aIOR;}
   
  private:
   glm::vec3 point;
@@ -39,5 +42,6 @@ class Ray{
   glm::vec3 normal;
   float time;
   Color color;
+  float prevIOR;
 };
 #endif

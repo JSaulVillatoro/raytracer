@@ -36,8 +36,17 @@ profile: DEFS += NDEBUG
 
 debug release profile: $(EXEC)
 
-run: $(EXEC)
-	./$(EXEC)
+refraction: $(EXEC)
+	./$(EXEC) 640 480 -S p -I povray_files/simple_refract.pov
+	./$(EXEC) 600 400 -S p -I povray_files/recurse_simp.pov
+	./$(EXEC) 600 400 -S p -I povray_files/modified_recurse_simp.pov
+	./$(EXEC) 640 480 -S p -I povray_files/recurse_simp2.pov
+	./$(EXEC) 640 480 -S p -I povray_files/modified_recurse_simp2.pov
+	./$(EXEC) 640 480 -S p -I povray_files/simple_tri.pov
+	./$(EXEC) 640 480 -S p -I povray_files/ugly_part.pov
+	./$(EXEC) 640 480 -S p -I povray_files/my_scene.pov
+	./$(EXEC) 640 480 -S p -I povray_files/recurses.pov
+	./$(EXEC) 640 480 -S p -I povray_files/modified_recurses.pov
 
 prepare:
 	mkdir -p $(OBJ_SUB_DIRS)

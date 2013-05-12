@@ -22,6 +22,7 @@ class Sphere : public Geometry{
   virtual void print();
   virtual float intersect(Ray* ray, float t0, float t1);
   virtual glm::vec3 calculateNormal(Ray* ray);
+  void setPosition(glm::vec3 pos){ position = pos;} 
   glm::vec3 getPosition(){ return position; }
   float getRadius(){ return radius; }
   

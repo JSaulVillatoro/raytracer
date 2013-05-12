@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <time.h>
 #include "core/Image.h"
 #include "core/types.h"
 #include "core/camera.h"
@@ -33,17 +34,22 @@ void parseFile(std::string fileName){
       getline(fin, tempString);
     }
     else{
+	/* only add implemented geometry to list.
+	REMEMBER TO CHANGE THIS. */
+
       if(tempString == "sphere"){
 	world_geometry.push_back(new Sphere(fin));
       }
       else if(tempString == "cone"){
-	world_geometry.push_back(new Cone(fin));
+	Cone* tempCone = new Cone(fin);
+	//world_geometry.push_back(new Cone(fin));
       }
       else if(tempString == "plane"){
 	world_geometry.push_back(new Plane(fin));
       }
       else if(tempString == "box"){
-	world_geometry.push_back(new Box(fin));
+	Box* tempBox = new Box(fin);
+	//world_geometry.push_back(new Box(fin));
       }
       else if(tempString == "triangle"){
 	world_geometry.push_back(new Triangle(fin));
@@ -75,7 +81,10 @@ void printInfo(){
   }
 }
 
-int main(int argc,char *argv[]){ 
+int main(int argc,char *argv[]){
+  clock_t start, end;
+  double runTime;
+  start = clock();
   if(argc != 7){
     std::cout << "Incorrect number of arguments." << std::endl;
     std::cout << "Usage: " << argv[0] << " [image_width] [image_height] -S [p,g] -I [input_file]" << std::endl;
@@ -167,6 +176,9 @@ int main(int argc,char *argv[]){
     }
     
     //printInfo();
+    char temp[strlen(argv[6])];
+    strcpy(temp, argv[6]);
+    
     
     argv[6][strlen(argv[6]) - 1] = 'a';
     argv[6][strlen(argv[6]) - 2] = 'g';
@@ -175,5 +187,8 @@ int main(int argc,char *argv[]){
   // write the targa file to disk
   img.WriteTga((char *)argv[6], false); 
   // true to scale to max color, false to clamp to 1.0
+  end = clock();
+  runTime = (end - start) / (double) CLOCKS_PER_SEC ;
+  printf ("Run time for file: %s is %g seconds.\n", temp, runTime);
   return 0;
 }
