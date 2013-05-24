@@ -47,7 +47,7 @@ int setVector(std::ifstream& fin, glm::vec3& vector){
   
   while(c != '>'){  
     if(!isspace(c)){
-      if(isdigit(c) || c == '-' || c == '+' || c == '.'){
+      if(isdigit(c) || c == '-' || c == '+' || c == '.' || c == 'e'){
 	temp += c;
       }
       else if( c == ',' ){
@@ -56,7 +56,7 @@ int setVector(std::ifstream& fin, glm::vec3& vector){
 	count++;
       }
       else{
-	std::cout <<"wec" << c << std::endl;
+	std::cout <<"wec" << c << fin.get()  << std::endl;
 	std::cout << "Format wrong in vector" << std::endl;
 	exit(1);
       }

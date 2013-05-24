@@ -76,7 +76,7 @@ void Plane::print(){
   std::cout << std::endl;  
 }
 
-float Plane::intersect(Ray* ray, float t0, float t1){
+Geometry* Plane::intersect(Ray* ray, float t0, float t1){
   
   glm::vec3 p0 = ray->getPoint();
   glm::vec4 tempP = glm::vec4(p0, 1.0f);
@@ -110,7 +110,7 @@ float Plane::intersect(Ray* ray, float t0, float t1){
     p = glm::vec3(0.0f, 0.0f, z);  
   }
   else{
-    return -1.0f;
+    return NULL;
   }  
   glm::vec3 diff_p = p - p0;
   
@@ -121,10 +121,11 @@ float Plane::intersect(Ray* ray, float t0, float t1){
     normal4 = normal4 * glm::inverse(getTransformationMatrix());
     glm::vec3 n_ws = glm::vec3(normal4.x, normal4.y, normal4.z);
     ray->setNormal(n_ws);
-    return t;
+    ray->setTime(t);
+    return this;
   }
   else{
-    return -1.0f;
+    return NULL;
   }
 }
 
@@ -132,3 +133,5 @@ float Plane::intersect(Ray* ray, float t0, float t1){
 glm::vec3 Plane::calculateNormal(Ray* ray){
    return normal;
  }
+
+ void Plane::setBoundingBox(){}

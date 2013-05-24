@@ -44,6 +44,7 @@ void Sphere::parse(std::ifstream& fin){
     else if(tempString == "translate"){
       glm::vec3 translation;
       setVector(fin, translation);
+      //std::cout << translation.x << " " << translation.y << " " << translation.z << std::endl;
       setTransformationMatrix(glm::translate(glm::mat4(1.0f), translation));
     }
     else if(tempString == "rotate"){
@@ -73,11 +74,18 @@ void Sphere::parse(std::ifstream& fin){
     
     fin >> tempString;  
   }	
+  //print();
     setTransformationMatrix(glm::translate(glm::mat4(1.0f), tempPosition));
 
+    setBoundingBox();
+    
+   // std::cout << "bounding box corner 1 x: " << boundingBox.getCorner1().x << " y: " << boundingBox.getCorner1().y << " z: " << boundingBox.getCorner1().z << std::endl;
+   // std::cout << "bounding box corner 2 x: " << boundingBox.getCorner2().x << " y: " << boundingBox.getCorner2().y << " z: " << boundingBox.getCorner2().z << std::endl;
+
+  
 }
 
-float Sphere::intersect(Ray* ray, float t0, float t1){
+Geometry* Sphere::intersect(Ray* ray, float t0, float t1){
   
   glm::vec3 p = ray->getPoint();
   glm::vec4 tempP = glm::vec4(p, 1.0f);
@@ -108,7 +116,7 @@ float Sphere::intersect(Ray* ray, float t0, float t1){
   float underRoot = d_dot_p_squared - (d_dot_d * (p_dot_p - (radius * radius)));
   
   if(underRoot < 0.0f){
-    return -1.0f;
+    return NULL;
   }
   
   float t_one = (firstTerm - sqrt(underRoot)) / d_dot_d;
@@ -116,7 +124,7 @@ float Sphere::intersect(Ray* ray, float t0, float t1){
 
   
   if(t_one < 0.0f && t_two < 0.0f){
-    return -1.0;
+    return NULL;
   }
   
   float pos_t_one = abs(t_one);
@@ -148,15 +156,17 @@ float Sphere::intersect(Ray* ray, float t0, float t1){
     glm::vec4 n_os = glm::vec4(poi - position, 0.0f);
     glm::vec4 n_ws4 = n_os * glm::inverse(getTransformationMatrix());
     
-    glm::vec3 n_ws = glm::vec3(n_ws4.x, n_ws4.y, n_ws4.z); 
+    //glm::vec3 n_ws = glm::vec3(n_ws4.x, n_ws4.y, n_ws4.z); 
+    glm::vec3 n_ws = glm::vec3(n_ws4); 
+
     
     ray->setNormal(n_ws);
-    
-    
-    return theT;
+    ray->setTime(theT);
+    //printf("BODIED\n");
+    return this;
   }
   else{
-    return -1.0f;
+    return NULL;
   }
 }
 
@@ -171,4 +181,13 @@ void Sphere::print(){
 
 glm::vec3 Sphere::calculateNormal(Ray* ray){
   return ray->getIntersectionPoint() - position;
+}
+
+void Sphere::setBoundingBox(){
+  glm::vec3 corner1 = position - glm::vec3(radius, radius, radius);
+  glm::vec3 corner2 = position + glm::vec3(radius, radius, radius);
+
+  boundingBox.setCorners(corner1, corner2);
+  boundingBox.changeBoundingBox(getTransformationMatrix());
+  
 }

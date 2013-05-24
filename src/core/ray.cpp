@@ -7,7 +7,7 @@
 #include "camera.h"
 #include "ray.h"
 
-void Ray::initializeRay(Camera camera, int imageWidth, int imageHeight, int i, int j){
+void Ray::initializeRay(Camera camera, int imageWidth, int imageHeight, float i, float j){
   
   point = camera.getLocation();
   
@@ -35,10 +35,6 @@ void Ray::initializeRay(Camera camera, int imageWidth, int imageHeight, int i, i
   glm::vec3 w_term = w_s * glm::normalize(w);
   
   direction = u_term + v_term + w_term;
-  
-  //glm::vec3 temp = camera.getLocation() + u_term + v_term + w_term;
-  //direction = temp - camera.getLocation();
-  //std::cout << "x: " << direction.x << " y: " << direction.y << " z: " <<direction.z << std::endl;
 }
 
 void Ray::initializeRay(glm::vec3 startPoint, glm::vec3 endPoint){

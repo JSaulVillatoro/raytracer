@@ -7,6 +7,7 @@
 #include "../core/finish.h"
 #include "../core/ray.h"
 #include "light_source.h"
+#include "BoundingBox.h"
 #include "../third_party/glm/gtc/matrix_transform.hpp"
 
 class Geometry{
@@ -16,8 +17,9 @@ class Geometry{
   virtual ~Geometry(){};
   virtual void parse(std::ifstream& fin) = 0;
   virtual void print() = 0;
-  virtual float intersect(Ray* ray, float t0, float t1) = 0;
+  virtual Geometry* intersect(Ray* ray, float t0, float t1) = 0;
   virtual glm::vec3 calculateNormal(Ray* ray) = 0;
+  virtual void setBoundingBox() = 0;
   
   void setPigment(std::ifstream& fin){ pigment.parsePigment(fin); }
   void setFinish(std::ifstream& fin){ finish.parseFinish(fin); }
@@ -26,6 +28,20 @@ class Geometry{
   glm::mat4 getTransformationMatrix(){return transformationMatrix;}
   void setTransformationMatrix(glm::mat4 aMatrix){transformationMatrix = aMatrix * transformationMatrix;} 
   void setTransformationMatrixOppo(glm::mat4 aMatrix){transformationMatrix = transformationMatrix * aMatrix;} 
+  BoundingBox getBoundingBox(){ return boundingBox;}
+  glm::vec3 getCenter(){ 
+    
+    float centerX;
+    float centerY;
+    float centerZ;
+    
+    centerX = (boundingBox.getCorner1().x + boundingBox.getCorner2().x) / 2.0f;
+    centerY = (boundingBox.getCorner1().y + boundingBox.getCorner2().y) / 2.0f;
+    centerZ = (boundingBox.getCorner1().z + boundingBox.getCorner2().z) / 2.0f;
+
+    return glm::vec3(centerX, centerY, centerZ);
+  }
+    BoundingBox boundingBox;
 
   
  private:

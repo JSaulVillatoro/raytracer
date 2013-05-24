@@ -20,8 +20,9 @@ class Box : public Geometry{
   
   virtual void parse(std::ifstream& fin);
   virtual void print();
-  virtual float intersect(Ray* ray, float t0, float t1);
+  virtual Geometry* intersect(Ray* ray, float t0, float t1);
   virtual glm::vec3 calculateNormal(Ray* ray);
+  virtual void setBoundingBox();
   
  private:   
   glm::vec3 corner1;

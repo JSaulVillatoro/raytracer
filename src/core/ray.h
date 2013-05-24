@@ -13,13 +13,13 @@ class Ray{
     direction = glm::vec3(0.0f);
     intersectionPoint = glm::vec3(0.0f);
     normal = glm::vec3(0.0f);
-    time = std::numeric_limits<double>::infinity();
+    time = std::numeric_limits<float>::infinity();
     Color color = Color();
     prevIOR = 1.0f;
   }
   
   virtual ~Ray(){};
-  void initializeRay(Camera camera, int imageWidth, int imageHeight, int i, int j);
+  void initializeRay(Camera camera, int imageWidth, int imageHeight, float i, float j);
   void initializeRay(glm::vec3 startPoint, glm::vec3 endPoint);
   glm::vec3 getPoint(){ return point; }
   void setPoint(glm::vec3 aPoint){ point = aPoint; };

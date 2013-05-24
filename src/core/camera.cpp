@@ -32,6 +32,9 @@ void Camera::parseCamera(std::ifstream& fin){
     else if(tempString == "look_at"){
       setVector(fin, look_at);
     }
+    else if(tempString == "direction"){
+      setVector(fin, direction);
+    }
     else{
       std::cout << "Unidentified keyword: " << tempString << std::endl;
       exit(0);

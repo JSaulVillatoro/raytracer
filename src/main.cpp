@@ -11,6 +11,7 @@
 #include "core/ray.h"
 #include "core/color.h"
 #include "core/shaders.h"
+#include "core/bvhNode.h"
 #include "geometry/light_source.h"
 #include "geometry/sphere.h"
 #include "geometry/cone.h"
@@ -21,7 +22,20 @@
 Camera* camera;
 
 std::vector<Geometry*> world_geometry;
+std::vector<Geometry*> other_geometry;
+
+std::vector<Geometry*> planes;
 std::vector<Light_Source*> light_sources;
+bvhNode* root;
+
+float offsetMe(){
+  float toReturn = ((float)rand() / (RAND_MAX)) / 1000.0f;
+  float deter = ((float) rand() / (RAND_MAX)) + 1.0f;
+  if (deter <= 0.5f){
+    toReturn = -1.0f * toReturn;
+  }
+  return toReturn;
+}
 
 void parseFile(std::string fileName){
   std::ifstream fin(fileName.c_str());
@@ -41,15 +55,14 @@ void parseFile(std::string fileName){
 	world_geometry.push_back(new Sphere(fin));
       }
       else if(tempString == "cone"){
-	Cone* tempCone = new Cone(fin);
+	other_geometry.push_back(new Cone(fin));
 	//world_geometry.push_back(new Cone(fin));
       }
       else if(tempString == "plane"){
-	world_geometry.push_back(new Plane(fin));
+	planes.push_back(new Plane(fin));
       }
       else if(tempString == "box"){
-	Box* tempBox = new Box(fin);
-	//world_geometry.push_back(new Box(fin));
+	world_geometry.push_back(new Box(fin));
       }
       else if(tempString == "triangle"){
 	world_geometry.push_back(new Triangle(fin));
@@ -67,6 +80,11 @@ void parseFile(std::string fileName){
     }
     fin >> tempString;
   }
+  root = new bvhNode(world_geometry, 0);
+ // std::cout << " x: " << root->getBoundingBox().getCorner1().x << " y: " << root->getBoundingBox().getCorner1().y << " z: " << root->getBoundingBox().getCorner1().z << std::endl;
+ // std::cout << " x: " << root->getBoundingBox().getCorner2().x << " y: " << root->getBoundingBox().getCorner2().y << " z: " << root->getBoundingBox().getCorner2().z << std::endl;
+
+  
 }
 
 void printInfo(){
@@ -131,6 +149,7 @@ int main(int argc,char *argv[]){
   
   Image img(width, height);
   Ray* rays[width][height];
+  Ray* pixelRays[9];
   
 
   for (int i=0; i < width; i++) {
@@ -143,25 +162,44 @@ int main(int argc,char *argv[]){
   Geometry* geometryHit;
   float lowestTime;
   
-  lowestTime = std::numeric_limits<double>::infinity(); 
+  rays[0][1]->getPoint() - rays[0][0]->getPoint();
+  
+  float offset = 0.5f;
+  //float offset = 0.5f;
+  
+  srand(5);
+  
   for (int i=0; i < width; i++){
     for (int j=0; j < height; j++){
-      geometryHit = NULL;
-      float temp = -1.0f;
-      for(unsigned int k = 0; k < world_geometry.size(); k++){
-	temp = world_geometry[k]->intersect(rays[i][j], 0.0f, rays[i][j]->getTime());
-	if(temp != -1.0f){
-	  geometryHit = world_geometry[k];
-	  lowestTime = temp;
-	  rays[i][j]->setTime(lowestTime);
-	}
-      }
-      if(geometryHit != NULL){
-	rays[i][j]->setTime(lowestTime);
-	rays[i][j]->setColor(shade(rays[i][j], light_sources, world_geometry, geometryHit, 6, shader));
+      
+      
+      for(int k = 0; k < 9; k++){
+	pixelRays[k] = new Ray();
+	    }
+      
+      
+            pixelRays[0]->initializeRay(*camera, width, height, i - offset + offsetMe(), j - offset + offsetMe());
+            pixelRays[1]->initializeRay(*camera, width, height, i + offsetMe(), j - offset + offsetMe());
+            pixelRays[2]->initializeRay(*camera, width, height, i + offset + offsetMe(), j - offset + offsetMe());
+            pixelRays[3]->initializeRay(*camera, width, height, i - offset + offsetMe(), j + offsetMe());
+            pixelRays[4]->initializeRay(*camera, width, height, i + offsetMe(), j + offsetMe());
+            pixelRays[5]->initializeRay(*camera, width, height, i + offset + offsetMe(), j + offsetMe());
+            pixelRays[6]->initializeRay(*camera, width, height, i - offset + offsetMe(), j + offset + offsetMe());
+            pixelRays[7]->initializeRay(*camera, width, height, i + offsetMe(), j + offset + offsetMe());
+            pixelRays[8]->initializeRay(*camera, width, height, i + offset + offsetMe(), j + offset + offsetMe());
+
+            
+	    glm::vec4 averageColor = glm::vec4(0.0f);
+	    for(int k = 0; k < 9; k++){
+	    averageColor += shade(pixelRays[k], light_sources, world_geometry, 6, shader, root, planes);
+	    }
+	    
+	    averageColor = averageColor / 9.0f;
+
+	rays[i][j]->setColor(averageColor);
+	//rays[i][j]->setColor(shade(rays[i][j], light_sources, world_geometry, 6, shader, root, planes));
       }
     }
-  }
   
   for (int i=0; i < width; i++) {
     for (int j=0; j < height; j++) {

@@ -18,7 +18,7 @@ OBJ_SUB_DIRS = $(patsubst $(SRC_DIR)%,$(OBJ_DIR)%,$(SRC_SUB_DIRS))
 EXEC = $(shell basename `pwd`)
 
 CXX = g++
-CFLAGS = -pipe $(foreach d,$(INCS),-I$d) $(foreach d,$(WARN),-W$d)
+CFLAGS = -pipe -fpermissive $(foreach d,$(INCS),-I$d) $(foreach d,$(WARN),-W$d)
 LD = g++
 LDFLAGS =
 

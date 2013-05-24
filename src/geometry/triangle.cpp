@@ -58,6 +58,11 @@ void Triangle::parse(std::ifstream& fin){
     
     fin >> tempString;  
   }	
+ // print();
+  setBoundingBox();
+ // std::cout << "bounding box corner 1 x: " << boundingBox.getCorner1().x << " y: " << boundingBox.getCorner1().y << " z: " << boundingBox.getCorner1().z << std::endl;
+ // std::cout << "bounding box corner 2 x: " << boundingBox.getCorner2().x << " y: " << boundingBox.getCorner2().y << " z: " << boundingBox.getCorner2().z << std::endl;
+
 }
 
 void Triangle::print(){
@@ -70,7 +75,7 @@ void Triangle::print(){
   std::cout << std::endl;
 }
 
-float Triangle::intersect(Ray* ray, float t0, float t1){
+Geometry* Triangle::intersect(Ray* ray, float t0, float t1){
   
     
   glm::vec3 p = ray->getPoint();
@@ -101,18 +106,18 @@ float Triangle::intersect(Ray* ray, float t0, float t1){
   glm::vec3 solutions = inverseA * b;
   
   if(solutions.z < t0 || solutions.z > t1){
-    return -1.0f;
+    return NULL;
   }
   
   else if(solutions.y > 1.0f || solutions.y < 0.0f){
-    return -1.0f;
+    return NULL;
   }
   
   else if(solutions.x > 1.0f || solutions.x < 0.0f){
-    return -1.0f;
+    return NULL;
   }
   else if(solutions.x + solutions.y >= 1.0f){
-    return -1.0f;
+    return NULL;
   }
   else{
    
@@ -125,9 +130,11 @@ float Triangle::intersect(Ray* ray, float t0, float t1){
       glm::vec4 normal4 = glm::vec4(toReturn, 0.0f);
     normal4 = normal4 * glm::inverse(getTransformationMatrix());
     glm::vec3 n_ws = glm::vec3(normal4.x, normal4.y, normal4.z);
+    
+    //std::cout << "x: " << normal4.x << " y: " << normal4.y << " z: " << normal4.z << std::endl;
     ray->setNormal(n_ws);
-  
-    return solutions.z;
+  ray->setTime(solutions.z);
+    return this;
   }
 }
 glm::vec3 Triangle::calculateNormal(Ray* ray){
@@ -136,9 +143,56 @@ glm::vec3 Triangle::calculateNormal(Ray* ray){
   
   glm::vec3 toReturn = glm::cross(ray1, ray2);
   
-  std::cout << "x: " << toReturn.x << " y: " << toReturn.y << " z: " << toReturn.z << std::endl;
+  //std::cout << "x: " << toReturn.x << " y: " << toReturn.y << " z: " << toReturn.z << std::endl;
   
   return  glm::cross(ray1, ray2);
   
+}
+
+void Triangle::setBoundingBox(){
+  
+    std::vector<glm::vec3> myCorners;
+
+    myCorners.push_back(corner1);
+    myCorners.push_back(corner2);
+    myCorners.push_back(corner3);
+  
+  float minX = std::numeric_limits<float>::infinity();
+  float minY = std::numeric_limits<float>::infinity();
+  float minZ = std::numeric_limits<float>::infinity();
+
+  float maxX = -std::numeric_limits<float>::infinity();
+  float maxY = -std::numeric_limits<float>::infinity();
+  float maxZ = -std::numeric_limits<float>::infinity();
+	
+	for(int i = 0; i < 3; i++){
+	  if(myCorners[i].x < minX){
+	    minX = myCorners[i].x;
+	  }
+	  if(myCorners[i].x > maxX){
+	    maxX = myCorners[i].x;
+	  }
+	  if(myCorners[i].y < minY){
+	    minY = myCorners[i].y;
+	  }
+	  if(myCorners[i].y > maxY){
+	    maxY = myCorners[i].y;
+	  }
+	  if(myCorners[i].z < minZ){
+	    minZ = myCorners[i].z;
+	  }
+	  if(myCorners[i].z > maxZ){
+	    maxZ = myCorners[i].z;
+	  }
+	}
+
+  
+  glm::vec3 cornerA = glm::vec3(minX, minY, minZ);
+  
+  glm::vec3 cornerB = glm::vec3(maxX, maxY, maxZ);
+ 
+  
+  boundingBox.setCorners(cornerA, cornerB);
+  boundingBox.changeBoundingBox(getTransformationMatrix());
   
 }
