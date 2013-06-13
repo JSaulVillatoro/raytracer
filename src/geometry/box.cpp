@@ -19,6 +19,7 @@ void Box::parse(std::ifstream& fin){
    
   fin >> tempString;
 
+  glm::mat4 tempTransformationMatrix = glm::mat4(1.0f);
   while(tempString != "}"){
     if(tempString == "pigment"){
       setPigment(fin);
@@ -29,26 +30,26 @@ void Box::parse(std::ifstream& fin){
     else if(tempString == "translate"){
       glm::vec3 translation;
       setVector(fin, translation);
-      setTransformationMatrix(glm::translate(glm::mat4(1.0f), translation));
+      tempTransformationMatrix = glm::translate(glm::mat4(1.0f), translation) * tempTransformationMatrix;
     }
     else if(tempString == "rotate"){
       glm::vec3 rotate;
       setVector(fin, rotate);
       
       if(rotate.x != 0.0f){
-	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.x, glm::vec3(1.0f, 0.0f, 0.0f)));
+	tempTransformationMatrix = glm::rotate(glm::mat4(1.0f), rotate.x, glm::vec3(1.0f, 0.0f, 0.0f)) * tempTransformationMatrix;
       }
       else if(rotate.y != 0.0f){
-	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.y, glm::vec3(0.0f, 1.0f, 0.0f)));
+	tempTransformationMatrix = glm::rotate(glm::mat4(1.0f), rotate.y, glm::vec3(0.0f, 1.0f, 0.0f)) * tempTransformationMatrix;
       }
       else{
-	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.z, glm::vec3(0.0f, 0.0f, 1.0f)));
+	tempTransformationMatrix = glm::rotate(glm::mat4(1.0f), rotate.z, glm::vec3(0.0f, 0.0f, 1.0f)) * tempTransformationMatrix;
       }
     }
     else if(tempString == "scale"){
       glm::vec3 scale;
       setVector(fin, scale);
-      setTransformationMatrix(glm::scale(glm::mat4(1.0f), scale));
+      tempTransformationMatrix = glm::scale(glm::mat4(1.0f), scale) * tempTransformationMatrix;
     }
     else{
       std::cout << "Unidentified keyword : " << tempString << std::endl;
@@ -56,9 +57,9 @@ void Box::parse(std::ifstream& fin){
     }
     fin >> tempString;
   }
+  setTransformationMatrix(tempTransformationMatrix);
+  setITM(tempTransformationMatrix);
   setBoundingBox();
-  //std::cout << "bounding box corner 1 x: " << boundingBox.getCorner1().x << " y: " << boundingBox.getCorner1().y << " z: " << boundingBox.getCorner1().z << std::endl;
-  //std::cout << "bounding box corner 2 x: " << boundingBox.getCorner2().x << " y: " << boundingBox.getCorner2().y << " z: " << boundingBox.getCorner2().z << std::endl;
 }
 
 void Box::print(){
@@ -78,11 +79,11 @@ Geometry* Box::intersect(Ray* ray, float t0, float t1){
   
   glm::vec3 p = ray->getPoint();
   glm::vec4 tempP = glm::vec4(p, 1.0f);
-  tempP = glm::inverse(getTransformationMatrix()) * tempP;
+  tempP = getITM() * tempP;
   
   glm::vec3 d = ray->getDirection();
    glm::vec4 tempD = glm::vec4(d, 0.0f);
-  tempD = glm::inverse(getTransformationMatrix()) * tempD;
+  tempD = getITM() * tempD;
     
   p.x = tempP.x;
   p.y = tempP.y;
@@ -223,41 +224,41 @@ Geometry* Box::intersect(Ray* ray, float t0, float t1){
      glm::vec3 poi = p + tgMin * d;
 
      if(thePlane == left){
-       glm::vec4 n_ws4 = glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f) * glm::inverse(getTransformationMatrix());
+       glm::vec4 n_ws4 = glm::vec4(-1.0f, 0.0f, 0.0f, 0.0f) * getITM();
        glm::vec3 n_ws = glm::vec3(n_ws4); 
            //   std::cout<< "left: " << n_ws.x << ", " << n_ws.y << ", " << n_ws.z << std::endl;
 
        ray->setNormal(n_ws);
      }
      else if(thePlane == right){       
-       glm::vec4 n_ws4 = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f) * glm::inverse(getTransformationMatrix());
+       glm::vec4 n_ws4 = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f) * getITM();
        glm::vec3 n_ws = glm::vec3(n_ws4); 
             //  std::cout<< "right: " << n_ws.x << ", " << n_ws.y << ", " << n_ws.z << std::endl;
 
        ray->setNormal(n_ws);
      }
      else if(thePlane == bottom){
-       glm::vec4 n_ws4 = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f) * glm::inverse(getTransformationMatrix());
+       glm::vec4 n_ws4 = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f) * getITM();
        glm::vec3 n_ws = glm::vec3(n_ws4.x, n_ws4.y, n_ws4.z); 
             //  std::cout<< "bottom: " << n_ws.x << ", " << n_ws.y << ", " << n_ws.z << std::endl;
 
        ray->setNormal(n_ws);
      }
      else if(thePlane == top){
-       glm::vec4 n_ws4 = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f) * glm::inverse(getTransformationMatrix());
+       glm::vec4 n_ws4 = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f) * getITM();
        glm::vec3 n_ws = glm::vec3(n_ws4); 
            //   std::cout<< "top: " << n_ws.x << ", " << n_ws.y << ", " << n_ws.z << std::endl;
 
        ray->setNormal(n_ws);
      }
      else if(thePlane == far){
-       glm::vec4 n_ws4 = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f) * glm::inverse(getTransformationMatrix());
+       glm::vec4 n_ws4 = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f) * getITM();
        glm::vec3 n_ws = glm::vec3(n_ws4);
            //   std::cout<< "far: " << n_ws.x << ", " << n_ws.y << ", " << n_ws.z << std::endl;
        ray->setNormal(n_ws);
      }
      else if(thePlane == near){
-       glm::vec4 n_ws4 = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) * glm::inverse(getTransformationMatrix());
+       glm::vec4 n_ws4 = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) * getITM();
        glm::vec3 n_ws = glm::vec3(n_ws4);
              // std::cout<< "near: " << n_ws.x << ", " << n_ws.y << ", " << n_ws.z << std::endl;
        ray->setNormal(n_ws);
@@ -316,5 +317,5 @@ void Box::setBoundingBox(){
  
   
   boundingBox.setCorners(cornerA, cornerB);
-  boundingBox.changeBoundingBox(getTransformationMatrix());
+  boundingBox.changeBoundingBox(getITM());
 }

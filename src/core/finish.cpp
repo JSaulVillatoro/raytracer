@@ -40,6 +40,9 @@ void Finish::parseFinish(std::ifstream& fin){
     else if( tempString == "ior"){
       ior = value;
     }
+    else if( tempString == "gloss"){
+      glossy = value;
+    }
     else{
       std::cout << "Unidentified keyword: " << tempString << std::endl;
       exit(0);

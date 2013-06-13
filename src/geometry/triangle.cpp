@@ -20,6 +20,8 @@ void Triangle::parse(std::ifstream& fin){
   
   fin >> tempString;
 
+  glm::mat4 tempTransformationMatrix = glm::mat4(1.0f);
+  
   while(tempString != "}"){
     if(tempString == "pigment"){
       setPigment(fin);
@@ -30,26 +32,26 @@ void Triangle::parse(std::ifstream& fin){
      else if(tempString == "translate"){
       glm::vec3 translation;
       setVector(fin, translation);
-      setTransformationMatrix(glm::translate(glm::mat4(1.0f), translation));
+      tempTransformationMatrix = glm::translate(glm::mat4(1.0f), translation) * tempTransformationMatrix;
     }
     else if(tempString == "rotate"){
       glm::vec3 rotate;
       setVector(fin, rotate);
       
       if(rotate.x != 0.0f){
-	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.x, glm::vec3(1.0f, 0.0f, 0.0f)));
+	tempTransformationMatrix = glm::rotate(glm::mat4(1.0f), rotate.x, glm::vec3(1.0f, 0.0f, 0.0f)) * tempTransformationMatrix;
       }
       else if(rotate.y != 0.0f){
-	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.y, glm::vec3(0.0f, 1.0f, 0.0f)));
+	tempTransformationMatrix = glm::rotate(glm::mat4(1.0f), rotate.y, glm::vec3(0.0f, 1.0f, 0.0f)) * tempTransformationMatrix;
       }
       else{
-	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.z, glm::vec3(0.0f, 0.0f, 1.0f)));
+	tempTransformationMatrix = glm::rotate(glm::mat4(1.0f), rotate.z, glm::vec3(0.0f, 0.0f, 1.0f)) * tempTransformationMatrix;
       }
     }
     else if(tempString == "scale"){
       glm::vec3 scale;
       setVector(fin, scale);
-      setTransformationMatrix(glm::scale(glm::mat4(1.0f), scale));
+      tempTransformationMatrix = glm::scale(glm::mat4(1.0f), scale) * tempTransformationMatrix;
     }
     else{
       std::cout << "Unidentified keyword: " << tempString << std::endl;
@@ -59,10 +61,9 @@ void Triangle::parse(std::ifstream& fin){
     fin >> tempString;  
   }	
  // print();
+  setTransformationMatrix(tempTransformationMatrix);
+  setITM(tempTransformationMatrix);
   setBoundingBox();
- // std::cout << "bounding box corner 1 x: " << boundingBox.getCorner1().x << " y: " << boundingBox.getCorner1().y << " z: " << boundingBox.getCorner1().z << std::endl;
- // std::cout << "bounding box corner 2 x: " << boundingBox.getCorner2().x << " y: " << boundingBox.getCorner2().y << " z: " << boundingBox.getCorner2().z << std::endl;
-
 }
 
 void Triangle::print(){
@@ -80,11 +81,11 @@ Geometry* Triangle::intersect(Ray* ray, float t0, float t1){
     
   glm::vec3 p = ray->getPoint();
   glm::vec4 tempP = glm::vec4(p, 1.0f);
-  tempP = glm::inverse(getTransformationMatrix()) * tempP;
+  tempP = getITM() * tempP;
   
   glm::vec3 d = ray->getDirection();
    glm::vec4 tempD = glm::vec4(d, 0.0f);
-  tempD = glm::inverse(getTransformationMatrix()) * tempD;
+  tempD = getITM() * tempD;
     
   p.x = tempP.x;
   p.y = tempP.y;
@@ -128,7 +129,7 @@ Geometry* Triangle::intersect(Ray* ray, float t0, float t1){
   glm::vec3 toReturn = glm::cross(ray1, ray2);
   
       glm::vec4 normal4 = glm::vec4(toReturn, 0.0f);
-    normal4 = normal4 * glm::inverse(getTransformationMatrix());
+    normal4 = normal4 * getITM();
     glm::vec3 n_ws = glm::vec3(normal4.x, normal4.y, normal4.z);
     
     //std::cout << "x: " << normal4.x << " y: " << normal4.y << " z: " << normal4.z << std::endl;
@@ -193,6 +194,6 @@ void Triangle::setBoundingBox(){
  
   
   boundingBox.setCorners(cornerA, cornerB);
-  boundingBox.changeBoundingBox(getTransformationMatrix());
+  boundingBox.changeBoundingBox(getITM());
   
 }

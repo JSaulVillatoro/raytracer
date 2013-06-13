@@ -26,8 +26,9 @@ class Geometry{
   Pigment getPigment(){ return pigment; }
   Finish getFinish(){ return finish; }
   glm::mat4 getTransformationMatrix(){return transformationMatrix;}
-  void setTransformationMatrix(glm::mat4 aMatrix){transformationMatrix = aMatrix * transformationMatrix;} 
-  void setTransformationMatrixOppo(glm::mat4 aMatrix){transformationMatrix = transformationMatrix * aMatrix;} 
+  void setTransformationMatrix(glm::mat4 aMatrix){transformationMatrix = aMatrix;}
+  void setITM(glm::mat4 aMatrix){ ITM = glm::inverse(aMatrix); }
+  glm::mat4 getITM(){ return ITM; }
   BoundingBox getBoundingBox(){ return boundingBox;}
   glm::vec3 getCenter(){ 
     
@@ -42,11 +43,13 @@ class Geometry{
     return glm::vec3(centerX, centerY, centerZ);
   }
     BoundingBox boundingBox;
+      glm::vec3 velocity;
 
   
  private:
   Pigment pigment;
   Finish finish;
   glm::mat4 transformationMatrix;
+  glm::mat4 ITM;
 };
 #endif

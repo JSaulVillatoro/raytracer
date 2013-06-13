@@ -28,6 +28,8 @@ void Sphere::parse(std::ifstream& fin){
   
   glm::vec3 empty;
   
+  glm::mat4 tempTransformationMatrix = glm::mat4(1.0f);
+  
   while(tempString != "}"){
         if(tempString[0] == '/' && tempString[1] == '/'){
       getline(fin, tempString);
@@ -44,27 +46,30 @@ void Sphere::parse(std::ifstream& fin){
     else if(tempString == "translate"){
       glm::vec3 translation;
       setVector(fin, translation);
-      //std::cout << translation.x << " " << translation.y << " " << translation.z << std::endl;
-      setTransformationMatrix(glm::translate(glm::mat4(1.0f), translation));
+      tempTransformationMatrix = glm::translate(glm::mat4(1.0f), translation) * tempTransformationMatrix;
     }
     else if(tempString == "rotate"){
       glm::vec3 rotate;
       setVector(fin, rotate);
       
       if(rotate.x != 0.0f){
-	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.x, glm::vec3(1.0f, 0.0f, 0.0f)));
+	tempTransformationMatrix = glm::rotate(glm::mat4(1.0f), rotate.x, glm::vec3(1.0f, 0.0f, 0.0f)) * tempTransformationMatrix;
       }
       else if(rotate.y != 0.0f){
-	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.y, glm::vec3(0.0f, 1.0f, 0.0f)));
+	tempTransformationMatrix = glm::rotate(glm::mat4(1.0f), rotate.y, glm::vec3(0.0f, 1.0f, 0.0f)) * tempTransformationMatrix;
       }
       else{
-	setTransformationMatrix(glm::rotate(glm::mat4(1.0f), rotate.z, glm::vec3(0.0f, 0.0f, 1.0f)));
+	tempTransformationMatrix = glm::rotate(glm::mat4(1.0f), rotate.z, glm::vec3(0.0f, 0.0f, 1.0f)) * tempTransformationMatrix;
       }
     }
     else if(tempString == "scale"){
       glm::vec3 scale;
       setVector(fin, scale);
-      setTransformationMatrix(glm::scale(glm::mat4(1.0f), scale));
+      tempTransformationMatrix = glm::scale(glm::mat4(1.0f), scale) * tempTransformationMatrix;
+    }
+    
+    else if(tempString == "velocity"){
+      setVector(fin, velocity);
     }
     else{
       std::cout << "Unidentified keyword: " << tempString << std::endl;
@@ -74,26 +79,28 @@ void Sphere::parse(std::ifstream& fin){
     
     fin >> tempString;  
   }	
-  //print();
-    setTransformationMatrix(glm::translate(glm::mat4(1.0f), tempPosition));
-
+    tempTransformationMatrix = glm::translate(glm::mat4(1.0f), tempPosition) * tempTransformationMatrix;  
+    setTransformationMatrix(tempTransformationMatrix);
+    setITM(tempTransformationMatrix);
     setBoundingBox();
-    
-   // std::cout << "bounding box corner 1 x: " << boundingBox.getCorner1().x << " y: " << boundingBox.getCorner1().y << " z: " << boundingBox.getCorner1().z << std::endl;
-   // std::cout << "bounding box corner 2 x: " << boundingBox.getCorner2().x << " y: " << boundingBox.getCorner2().y << " z: " << boundingBox.getCorner2().z << std::endl;
-
-  
 }
 
 Geometry* Sphere::intersect(Ray* ray, float t0, float t1){
+
+  float ttime = (float)rand() / (float) RAND_MAX;
+  
+  glm::vec3 amountMove = velocity * ttime;
+  
+  glm::mat4 tempITMatrix = glm::translate(glm::mat4(1.0f), amountMove) * getTransformationMatrix();
+  tempITMatrix = glm::inverse(tempITMatrix);
   
   glm::vec3 p = ray->getPoint();
   glm::vec4 tempP = glm::vec4(p, 1.0f);
-  tempP = glm::inverse(getTransformationMatrix()) * tempP;
+  tempP = tempITMatrix * tempP;
   
   glm::vec3 d = ray->getDirection();
    glm::vec4 tempD = glm::vec4(d, 0.0f);
-  tempD = glm::inverse(getTransformationMatrix()) * tempD;
+  tempD = tempITMatrix * tempD;
     
   p.x = tempP.x;
   p.y = tempP.y;
@@ -154,7 +161,7 @@ Geometry* Sphere::intersect(Ray* ray, float t0, float t1){
     
     glm::vec3 poi = p + theT * d;
     glm::vec4 n_os = glm::vec4(poi - position, 0.0f);
-    glm::vec4 n_ws4 = n_os * glm::inverse(getTransformationMatrix());
+    glm::vec4 n_ws4 = n_os * tempITMatrix;
     
     //glm::vec3 n_ws = glm::vec3(n_ws4.x, n_ws4.y, n_ws4.z); 
     glm::vec3 n_ws = glm::vec3(n_ws4); 
@@ -184,10 +191,55 @@ glm::vec3 Sphere::calculateNormal(Ray* ray){
 }
 
 void Sphere::setBoundingBox(){
-  glm::vec3 corner1 = position - glm::vec3(radius, radius, radius);
-  glm::vec3 corner2 = position + glm::vec3(radius, radius, radius);
+  glm::vec3 initCorner1 = position - glm::vec3(radius, radius, radius);
+  glm::vec3 initCorner2 = position + glm::vec3(radius, radius, radius);
+  
+  glm::vec3 finalCorner1 = (position + velocity) - glm::vec3(radius, radius, radius);
+  glm::vec3 finalCorner2 = (position + velocity) + glm::vec3(radius, radius, radius);
 
+  
+  std::vector<glm::vec3> corners;
+  
+  corners.push_back(initCorner1);
+  corners.push_back(initCorner2);
+  corners.push_back(finalCorner1);
+  corners.push_back(finalCorner2);
+  
+  float minX = std::numeric_limits<float>::infinity();
+  float minY = std::numeric_limits<float>::infinity();
+  float minZ = std::numeric_limits<float>::infinity();
+
+  float maxX = -std::numeric_limits<float>::infinity();
+  float maxY = -std::numeric_limits<float>::infinity();
+  float maxZ = -std::numeric_limits<float>::infinity();
+  
+  for(int i = 0; i < 4; i++){
+     if(corners[i].x >= maxX){
+      maxX = corners[i].x;
+    }
+    if(corners[i].x <= minX){
+      minX = corners[i].x;
+    }
+    if(corners[i].y >= maxY){
+      maxY = corners[i].y;
+    }
+    if(corners[i].y <= minY){
+      minY = corners[i].y;
+    }
+    if(corners[i].z >= maxZ){
+      maxZ = corners[i].z;
+    }
+    if(corners[i].z <= minZ){
+      minZ = corners[i].z;
+    }   
+  }
+  
+  glm::vec3 corner1 = glm::vec3(minX, minY, minZ);
+  glm::vec3 corner2 = glm::vec3(maxX, maxY, maxZ);
+
+ 
   boundingBox.setCorners(corner1, corner2);
-  boundingBox.changeBoundingBox(getTransformationMatrix());
+  boundingBox.changeBoundingBox(getITM());
   
 }
+

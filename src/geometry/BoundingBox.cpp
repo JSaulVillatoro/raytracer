@@ -142,7 +142,7 @@ void BoundingBox::changeBoundingBox(glm::mat4 aTransformationMatrix){
   */
   for(int i = 0; i < 8; i++){
     glm::vec4 tempP = glm::vec4(AABBCorners[i], 1.0f);
-    tempP = aTransformationMatrix * tempP;
+    tempP = glm::inverse(aTransformationMatrix) * tempP;
     transformedCorners.push_back(glm::vec3(tempP.x, tempP.y, tempP.z));
   }
 /*

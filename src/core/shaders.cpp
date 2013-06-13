@@ -1,13 +1,17 @@
 #include "core/shaders.h"
 #include "geometry/geometry.h"
 
-glm::vec4 shade(Ray* ray, std::vector<Light_Source*> lightSources, std::vector<Geometry*> collidedObjects, int reflectCounter, int shader, bvhNode* node, std::vector<Geometry*> planes){
+glm::vec4 shade(Ray* ray, std::vector<Light_Source*> lightSources, std::vector<Geometry*> collidedObjects, int reflectCounter, int globalCounter, int shader, bvhNode* node, std::vector<Geometry*> planes){
   Geometry* closestObject = findClosestObject(ray, collidedObjects, node, planes);
   
   if(closestObject == NULL){
+    //std::cout << globalCounter << std::endl;
     return ray->getColor().getColorVector();
   }
   else{
+    
+    float scaleBy = 1.0f;
+    
     glm::vec4 lightColor;
     glm::vec4 ambient;
     glm::vec4 specular;
@@ -17,11 +21,71 @@ glm::vec4 shade(Ray* ray, std::vector<Light_Source*> lightSources, std::vector<G
     glm::vec3 normal = ray->getNormal();
     normal = glm::normalize(normal);
     
+  //  std::cout << normal.x << " " << normal.y << " " << normal.z << std::endl;
+  //  std::cout << ray->getPoint().x << " " << ray->getPoint().y << " " << ray->getPoint().z << std::endl;
+
+    
     for(unsigned int i = 0; i < lightSources.size(); i++){
       lightColor = lightSources[i]->getColor().getColorVector();
       
+      	  glm::vec4 tempAmbient;
+/*
+	  int numHits = 0;
+	  for(int c = 0; c < 512; c++){
+	   glm::vec4 tempC;
+	   Ray* amOc = new Ray();
+	   amOc->setPoint(ray->getIntersectionPoint());
+	   amOc->setDirection(cosineWeightedDirection(normal));
+	   amOc->setPoint(amOc->getPoint() + 0.0001f * amOc->getDirection());
+
+	  Geometry* tempObject = findClosestObject(amOc, collidedObjects, node, planes);
+	  
+	  if(tempObject != NULL){
+	    numHits++;
+	  }
+	  delete amOc;
+	    
+	  }
+	  
+	  scaleBy = (1.0f - ((float)numHits / 512.0f));
+	  */
+      
+	 /* 
+      if(globalCounter !=0){
+			
+	int counter = 1;
+	  for(int i = 0; i < 256; i++){
+	    glm::vec4 tempColor;
+	    Ray* TOASSAIL = new Ray();
+	    TOASSAIL->setPoint(ray->getIntersectionPoint());
+	    TOASSAIL->setDirection(cosineWeightedDirection(normal));
+	    //std::cout << "x: " << TOASSAIL->getDirection().x << " y: " << TOASSAIL->getDirection().y << " z: " << TOASSAIL->getDirection().z << std::endl;
+	    TOASSAIL->setPoint(TOASSAIL->getPoint() + 0.0001f * TOASSAIL->getDirection());
+	    	    	// std::cout << "x: " << TOASSAIL->getPoint().x << " y: " << TOASSAIL->getPoint().y << " z: " << TOASSAIL->getPoint().z <<std::endl;
+
+	    tempColor =  shade(TOASSAIL,lightSources, collidedObjects, reflectCounter, globalCounter - 1, shader, node, planes);
+	    	  //std::cout << "r: " << tempColor.x << " g: " << tempColor.y << " b: " << tempColor.z <<std::endl;
+		  if (tempColor.x == 0.0f && tempColor.y == 0.0f && tempColor.z == 0.0f){
+		  }
+		  else{
+		    tempAmbient += tempColor;
+		    counter++;
+		  }
+	    delete TOASSAIL;
+
+	  }
+	  tempAmbient = tempAmbient / 256.0f;	
+	  
+	  
+	// std::cout << tempAmbient.x << " " <<tempAmbient.y << " " << tempAmbient.z << std::endl;
+	}
+	
+	//return tempAmbient;
+*/
+      
       glm::vec4 thisAmbient;
-      thisAmbient = closestObject->getPigment().getColor().getColorVector() * closestObject->getFinish().getAmbient();
+      //thisAmbient = tempAmbient;
+      thisAmbient = closestObject->getFinish().getAmbient() * closestObject->getPigment().getColor().getColorVector();
       thisAmbient.x = thisAmbient.x * lightColor.x;
       thisAmbient.y = thisAmbient.y * lightColor.y;
       thisAmbient.z = thisAmbient.z * lightColor.z;
@@ -32,7 +96,7 @@ glm::vec4 shade(Ray* ray, std::vector<Light_Source*> lightSources, std::vector<G
       lightVector = glm::normalize(lightVector);
       
       if(closestObject->getFinish().getRefraction() > 0.0 && reflectCounter != 0){
-	return calculateRefraction(ray, lightSources, collidedObjects, reflectCounter, shader, closestObject, node, planes);
+	return calculateRefraction(ray, lightSources, collidedObjects, reflectCounter, globalCounter, shader, closestObject, node, planes);
       }       
       
       bool inShadow = isInShadow(ray, lightSources[i], collidedObjects, closestObject,node, planes);
@@ -46,9 +110,8 @@ glm::vec4 shade(Ray* ray, std::vector<Light_Source*> lightSources, std::vector<G
       else{
 	
 	float NdotL = std::max(0.0f, glm::dot(normal, lightVector));
-	
 	glm::vec4 thisDiffuse;
-	
+
 	thisDiffuse = closestObject->getFinish().getDiffuse() * NdotL * closestObject->getPigment().getColor().getColorVector();
 	thisDiffuse.x = thisDiffuse.x * lightColor.x;
 	thisDiffuse.y = thisDiffuse.y * lightColor.y;
@@ -59,7 +122,7 @@ glm::vec4 shade(Ray* ray, std::vector<Light_Source*> lightSources, std::vector<G
 	specular += calculateSpecular(ray, lightVector, NdotL, closestObject, shader, lightColor);
       }
     } 
-    glm::vec4 theColor = ambient + diffuse + specular;
+    glm::vec4 theColor = scaleBy * (ambient + diffuse + specular);
     
     if(closestObject->getFinish().getReflection() > 0.0 && reflectCounter != 0){
       
@@ -74,9 +137,32 @@ glm::vec4 shade(Ray* ray, std::vector<Light_Source*> lightSources, std::vector<G
       reflectedRay->setDirection(reflectedD);
       reflectedRay->setPoint(reflectedRay->getPoint() + 0.0001f * reflectedRay->getDirection());
       
+      glm::vec4 reflectTempColor;
       
-	theColor = (1.0f - closestObject->getFinish().getReflection()) * theColor + closestObject->getFinish().getReflection() * shade(reflectedRay, lightSources, collidedObjects, reflectCounter - 1, shader, node, planes);
+      float a = closestObject->getFinish().getGlossy();
+      
+      for(int i = 0; i < 128; i++){
+	
+	Ray* tempRay = new Ray();
+	tempRay->setPoint(reflectedRay->getPoint());
+	float ran1 = (float)rand() / (float)RAND_MAX;
+	float ran2 = (float)rand() / (float)RAND_MAX;
+	
+	float u = -(a/2.0f) + ran1 * a;
+	float v = -(a/2.0f) + ran2 * a;
+	
+	glm::vec3 U = glm::cross(reflectedRay->getDirection(), normal);
+	glm::vec3 V = glm::cross(reflectedRay->getDirection(), U);
+	
+	tempRay->setDirection(reflectedRay->getDirection() + (u * U) + (v * V));
+	tempRay->setPoint(tempRay->getPoint() + 0.0001f * tempRay->getDirection());
 
+	reflectTempColor += (1.0f - closestObject->getFinish().getReflection()) * theColor + closestObject->getFinish().getReflection() * shade(tempRay, lightSources, collidedObjects, reflectCounter - 1, globalCounter, shader, node, planes);
+	delete tempRay;	
+      }
+      
+      theColor = reflectTempColor / 128.0f;
+      delete reflectedRay;
     }   
     
     //theColor.w = closestObject->getPigment().getColor().getColorVector().w;
@@ -90,8 +176,9 @@ Geometry* findClosestObject(Ray* ray, std::vector<Geometry*> collidedObjects, bv
   Geometry* plane = NULL;
   Geometry* temp = NULL;
   
-  hierarchy = node->intersect(ray, 0.0f, ray->getTime());
-  
+  if(collidedObjects.size() != 0.0){
+    hierarchy = node->intersect(ray, 0.0f, ray->getTime());
+  }
   for(unsigned int k = 0; k < planes.size(); k++){
     temp = planes[k]->intersect(ray, 0.0f, ray->getTime());
     
@@ -99,11 +186,10 @@ Geometry* findClosestObject(Ray* ray, std::vector<Geometry*> collidedObjects, bv
       plane = temp;
     }
   }
-  
   if(plane != NULL){
     return plane;
   }
-  else{
+    else{
     return hierarchy;
   }
 }
@@ -117,8 +203,9 @@ bool isInShadow(Ray* ray, Light_Source* lightSource, std::vector<Geometry*> coll
   Geometry* plane = NULL;
   Geometry* temp = NULL;
   
+  if(collidedObjects.size() != 0){
   hierarchy = node->intersect(shadowFeeler, 0.0f, shadowFeeler->getTime());
-  
+  }
   for(unsigned int k = 0; k < planes.size(); k++){
     temp = planes[k]->intersect(shadowFeeler, 0.0f, shadowFeeler->getTime());
     
@@ -127,6 +214,7 @@ bool isInShadow(Ray* ray, Light_Source* lightSource, std::vector<Geometry*> coll
     }
   }
   
+  delete shadowFeeler;
   Geometry* toReturn = NULL;
   
   if(plane != NULL){
@@ -201,7 +289,7 @@ glm::vec4 calculateSpecular(Ray* ray, glm::vec3 lightVector, float NdotL, Geomet
 	return glm::vec4(0.0f);
 }
 
-glm::vec4 calculateRefraction(Ray* ray, std::vector<Light_Source*> lightSources, std::vector<Geometry*> collidedObjects, int reflectCounter, int shader, Geometry* closestObject, bvhNode* node, std::vector<Geometry*> planes){
+glm::vec4 calculateRefraction(Ray* ray, std::vector<Light_Source*> lightSources, std::vector<Geometry*> collidedObjects, int reflectCounter, int globalCounter, int shader, Geometry* closestObject, bvhNode* node, std::vector<Geometry*> planes){
   glm::vec3 normal = ray->getNormal();
   normal = glm::normalize(normal);
     
@@ -233,7 +321,7 @@ glm::vec4 calculateRefraction(Ray* ray, std::vector<Light_Source*> lightSources,
 	glm::vec4 reflectedColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	
 
-	  reflectedColor = shade(reflectedRay, lightSources, collidedObjects, (reflectCounter - 1), shader, node, planes);
+	  reflectedColor = shade(reflectedRay, lightSources, collidedObjects, (reflectCounter - 1), globalCounter, shader, node, planes);
 	
 	if(glm::dot(currentRayNormalizedD, normal) <= 0.0f){
 	  refract(currentRayNormalizedD, normal, ray->getIOR(), tempIOR, *theT);       
@@ -259,8 +347,10 @@ glm::vec4 calculateRefraction(Ray* ray, std::vector<Light_Source*> lightSources,
 	glm::vec4 refractedColor = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
 	
 
-	  refractedColor = shade(theT, lightSources, collidedObjects, reflectCounter - 1, shader, node, planes);
+	  refractedColor = shade(theT, lightSources, collidedObjects, reflectCounter - 1, globalCounter, shader, node, planes);
 
+	  delete theT;
+	  delete reflectedRay;
 	return ((R * reflectedColor) + ((1.0f - R) * refractedColor));
 	
 }
@@ -287,4 +377,38 @@ bool refract(glm::vec3 d, glm::vec3 n, float prevIOR, float newIOR, Ray &t){
   t.setIOR(newIOR);
   
   return true; 
+}
+
+glm::vec3 cosineWeightedDirection(glm::vec3 aNormal){
+  float X1 = (float)rand() / (float)RAND_MAX;
+  float X2 = (float)rand() / (float)RAND_MAX;
+
+  float theta = acos(sqrt(1.0f - X1));
+  float phi = 2.0f * 3.1415f * X2;
+  
+  float Xs = sinf(theta) * cosf(phi);
+  float Ys = cosf(theta);
+  float Zs = sinf(theta) * sinf(phi);
+  
+  
+  glm::vec3 y = aNormal;
+  glm::vec3 h = y;
+  
+  if(fabs(h.x) <= fabs(h.y) && fabs(h.x) <= fabs(h.z)){
+    h.x = 1.0f;
+  }
+  else if (fabs(h.y) <= fabs(h.x) && fabs(h.y) <= fabs(h.z)){
+    h.y = 1.0f;
+  }
+  else{
+    h.z = 1.0f;
+  }
+  
+  glm::vec3 x = glm::normalize(glm::cross(y, h));
+  glm::vec3 z = glm::normalize(glm::cross(x, y));
+  
+  glm::vec3 tr = (Xs * x) + (Ys * y) + (Zs * z);
+  tr = glm::normalize(tr);
+  return tr;
+
 }

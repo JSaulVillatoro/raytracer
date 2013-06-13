@@ -10,7 +10,7 @@ camera {
 
 
 
-light_source {<0, 0, 25> color rgb <1.5, 1.5, 1.5>}
+light_source {<0, 0, 0> color rgb <1.5, 1.5, 1.5>}
 
 
 plane {<0, 1, 0>, -6
@@ -38,6 +38,12 @@ plane {<0, 1, 0>, -6
 }
 
 plane {<0, 0, 1>, -6
+      pigment {color rgb <1.0, 1.0, 1.0>}
+      finish {ambient 0.4 diffuse 0.8 }
+      rotate <0, 0, 0>
+}
+
+plane {<0, 0, -1>, 15
       pigment {color rgb <1.0, 1.0, 1.0>}
       finish {ambient 0.4 diffuse 0.8 }
       rotate <0, 0, 0>

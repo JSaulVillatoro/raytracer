@@ -29,8 +29,9 @@ std::vector<Light_Source*> light_sources;
 bvhNode* root;
 
 float offsetMe(){
-  float toReturn = ((float)rand() / (RAND_MAX)) / 1000.0f;
-  float deter = ((float) rand() / (RAND_MAX)) + 1.0f;
+  return 0.0f;
+  float toReturn = ((float)rand() / (RAND_MAX)) / 100000.0f;
+  float deter = ((float) rand() / (RAND_MAX));
   if (deter <= 0.5f){
     toReturn = -1.0f * toReturn;
   }
@@ -80,11 +81,12 @@ void parseFile(std::string fileName){
     }
     fin >> tempString;
   }
-  root = new bvhNode(world_geometry, 0);
- // std::cout << " x: " << root->getBoundingBox().getCorner1().x << " y: " << root->getBoundingBox().getCorner1().y << " z: " << root->getBoundingBox().getCorner1().z << std::endl;
- // std::cout << " x: " << root->getBoundingBox().getCorner2().x << " y: " << root->getBoundingBox().getCorner2().y << " z: " << root->getBoundingBox().getCorner2().z << std::endl;
-
-  
+  if(world_geometry.size() == 0){
+    root == NULL;
+  }
+  else{
+    root = new bvhNode(world_geometry, 0);
+  }
 }
 
 void printInfo(){
@@ -151,7 +153,8 @@ int main(int argc,char *argv[]){
   Ray* rays[width][height];
   Ray* pixelRays[9];
   
-
+ int currentPercent = 0;
+  
   for (int i=0; i < width; i++) {
     for (int j=0; j < height; j++) {
       rays[i][j] = new Ray();
@@ -169,10 +172,12 @@ int main(int argc,char *argv[]){
   
   srand(5);
   
+  int counter = 0;
+  
   for (int i=0; i < width; i++){
     for (int j=0; j < height; j++){
       
-      
+      /*
       for(int k = 0; k < 9; k++){
 	pixelRays[k] = new Ray();
 	    }
@@ -191,15 +196,46 @@ int main(int argc,char *argv[]){
             
 	    glm::vec4 averageColor = glm::vec4(0.0f);
 	    for(int k = 0; k < 9; k++){
-	    averageColor += shade(pixelRays[k], light_sources, world_geometry, 6, shader, root, planes);
+	    averageColor += shade(pixelRays[k], light_sources, world_geometry, 6, 1, shader, root, planes);
 	    }
 	    
 	    averageColor = averageColor / 9.0f;
 
 	rays[i][j]->setColor(averageColor);
-	//rays[i][j]->setColor(shade(rays[i][j], light_sources, world_geometry, 6, shader, root, planes));
+	*/
+      
+        glm::vec4 theColor;
+	
+	for(int h = 0; h < 256; h++){
+	  glm::vec4 tt = shade(rays[i][j], light_sources, world_geometry, 6, 1,shader, root, planes);
+	  //	std::cout << tt.x << " " << tt.y << " " << tt.z << std::endl;
+
+	theColor += tt;
+	//std::cout << theColor.x << " " << theColor.y << " " << theColor.z << std::endl;
+
+	delete rays[i][j];
+	rays[i][j] = new Ray();
+	rays[i][j]->initializeRay(*camera, width, height, i, j);
+	}
+	
+	theColor = theColor / 256.0f;
+	
+	//std::cout << theColor.x << " " << theColor.y << " " << theColor.z << std::endl;
+	rays[i][j]->setColor(theColor);
+	
+	//rays[i][j]->setColor( shade(rays[i][j], light_sources, world_geometry, 1, 1,shader, root, planes));
+	/*
+	for(int k = 0; k < 9; k++){
+	delete pixelRays[k];
+	    }
+	    */
       }
-    }
+      
+      if(counter <= (100.0f * (i / (float)width))){
+	counter++;
+	std::cout << counter<< "%" << std::endl;
+      }
+          }
   
   for (int i=0; i < width; i++) {
     for (int j=0; j < height; j++) {

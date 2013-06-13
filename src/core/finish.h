@@ -12,6 +12,7 @@ class Finish{
     reflection = 0.0f;
     refraction = 0.0f;
     ior = 0.0f;
+    glossy = 0.0f;
   }
   
   virtual ~Finish(){};
@@ -23,6 +24,7 @@ class Finish{
   float getReflection(){ return reflection;}
   float getRefraction(){ return refraction;}
   float getIor(){ return ior;}
+  float getGlossy(){ return glossy;}
 
   void printFinish();
   
@@ -34,5 +36,6 @@ class Finish{
   float reflection;
   float refraction;
   float ior;
+  float glossy;
 };
 #endif
